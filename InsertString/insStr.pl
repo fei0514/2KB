@@ -21,17 +21,16 @@ open(OF,"> $file");
 open(IF,"$TmpF");
 while(<IF>){
   chomp;
-  if((($_ =~ /^\s*\*/) || ($_ =~ /^\s*$/)) && ($SW_sub eq "N")){
-    print OF "$_\n";
-    next;
-  }elsif($_ =~ /^\.SUBCKT\s+/){
+
+  if($_ =~ /^\.SUBCKT\s+/){
     $SW_sub = "Y";
     if($_ =~ /\s+$subckt\s+/){
       $SW = "Y";
     }
+    $_ =~ s/$subckt/${subckt}_1/g;
     $out = sprintf("%s\n",$_);
     next;
-  }elsif($_ =~ /^\.ENDS\s+/){
+  }elsif($_ =~ /ENDS/){
     $SW_sub = "N";
     if($SW eq "Y"){
       $out = sprintf("%s%s",$out,$ins);
@@ -40,9 +39,14 @@ while(<IF>){
     $out = sprintf("%s%s\n",$out,$_);
     print OF "$out";
     $out = "";
-  }else{
+    next;
+  }elsif($SW_sub eq "Y"){
     $_ =~ s/$subckt/${subckt}_1/g;
     $out = sprintf("%s%s\n",$out,$_);
+    next;
+  }else{
+    print OF "$_\n";
+    next;
   }
 }
 print OF "$out";
