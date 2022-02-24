@@ -13,6 +13,7 @@ my $TmpF = "\.${file}_tmp_$$";
 
 my $cmd_cp = qq(cp $file $TmpF);
 system($cmd_cp);
+sleep 3;
 
 my $SW = "N";
 my $SW_sub = "N";
@@ -22,18 +23,19 @@ open(IF,"$TmpF");
 while(<IF>){
   chomp;
 
+  $_ =~ s/$subckt/${subckt}_1/g;
   if($_ =~ /^\.SUBCKT\s+/){
     $SW_sub = "Y";
-    if($_ =~ /\s+$subckt\s+/){
+    if($_ =~ /\s+${subckt}_1\s+/){
       $SW = "Y";
     }
-    $_ =~ s/$subckt/${subckt}_1/g;
-    $out = sprintf("%s\n",$_);
+    print OF "$_\n";
+    #$out = sprintf("%s\n",$_);
     next;
-  }elsif($_ =~ /ENDS/){
+  }elsif($_ =~ /^\.ENDS/){
     $SW_sub = "N";
     if($SW eq "Y"){
-      $out = sprintf("%s%s",$out,$ins);
+      $out = sprintf("%s",$ins);
       $SW = "N";
     }
     $out = sprintf("%s%s\n",$out,$_);
@@ -41,8 +43,8 @@ while(<IF>){
     $out = "";
     next;
   }elsif($SW_sub eq "Y"){
-    $_ =~ s/$subckt/${subckt}_1/g;
-    $out = sprintf("%s%s\n",$out,$_);
+    print OF "$_\n";
+    #$out = sprintf("%s%s\n",$out,$_);
     next;
   }else{
     print OF "$_\n";
@@ -53,7 +55,6 @@ print OF "$out";
 close IF;
 close OF;
 system("rm -f $TmpF");
-
 exit;
 
 
@@ -93,8 +94,8 @@ sub Parser{
 }
 
 sub PrintHelp{
-print <<HELP;
-\t$script -f <file> -sub <subckt> -ins <insert text or file>
+  print <<HELP;
+  \t$script -f <file> -sub <subckt> -ins <insert text or file>
 HELP
-exit;
+  exit;
 }
