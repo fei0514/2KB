@@ -12,12 +12,13 @@ my ($file,$subckt,$ins) = &Parser;
 my $TmpF = "\.${file}_tmp_$$";
 my $cmd_cp = qq(cp $file $TmpF);
 system($cmd_cp);
-sleep 3;
+#sleep 3;
 
 my ($replAns,$insAns,$cntAns) = &Ans($subckt,$ins);
 my $SW = "N";
 my $SW_cnt = "N";
 my %cnt; ##keys:PINs,I,O,B
+my %pins; ##keys:I,O,B
 my $out;
 open(OF,"> $file");
 open(IF,"$TmpF");
@@ -66,7 +67,9 @@ close OF;
 system("rm -f $TmpF");
 
 ##print number of pin
-print <<CNT;
+my $ofile = qq(${subckt}_pin);
+open(OF,">$ofile");
+print OF <<CNT;
 ***********************
 * Pins = $cnt{PINs}
 *   I  = $cnt{I}
@@ -74,6 +77,15 @@ print <<CNT;
 *   B  = $cnt{B}
 ***********************
 CNT
+
+my @pinSort = qw(NAME I O B);
+foreach my $s (@pinSort){
+  print OF "***********************\n";
+  print OF "$s => \n";
+  print OF "$pins{$s}\n\n";
+}
+close OF;
+
 exit;
 
 
@@ -157,18 +169,40 @@ sub CntPinInfo{
   if($line =~ /^\.SUBCKT\s+$subckt/){
     my @reg = split(/\s+/,$line);
     my $size = scalar @reg;
+
     $cnt{"PINs"} = $size - 2;
+    foreach my $i (@reg){
+      next if(($i =~ /SUBCKT/) || ($i =~ /$subckt/));
+      if($pins{NAME} eq ""){
+        $pins{NAME} = $i;
+      }else{
+        $pins{NAME} = sprintf("%s\n%s",$pins{NAME},$i);
+      }
+    }
   }elsif($line =~ /^\+\s+\w+/){
     my @reg = split(/\s+/,$line);
     my $size = scalar @reg;
+
     $cnt{"PINs"} = $cnt{"PINs"} + $size - 1;
+    foreach my $i (@reg){
+      next if($i =~ /\+/);
+      $pins{NAME} = sprintf("%s\n%s",$pins{NAME},$i);
+    }
   }elsif($line =~ /^\*\.PININFO\s+/){
     my @reg = split(/\s+/,$line);
+
     foreach my $i (@reg){
       next if($i =~ /PININFO/);
-      if($i =~ /\S+\:(I|O|B)/){
-        my $iob = $1;
+      if($i =~ /(\S+)\:(I|O|B)/){
+        my $pin = $1;
+        my $iob = $2;
+
         $cnt{$iob}++;
+        if($pins{$iob} eq ""){
+          $pins{$iob} = $pin;
+        }else{
+          $pins{$iob} = sprintf("%s\n%s",$pins{$iob}, $pin);
+        }
       }
     }
   }else{
