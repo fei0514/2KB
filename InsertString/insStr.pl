@@ -17,7 +17,7 @@ sleep 3;
 my ($replAns,$insAns,$cntAns) = &Ans($subckt,$ins);
 my $SW = "N";
 my $SW_cnt = "N";
-my %cnt; ##keys:pin,I,O,B
+my %cnt; ##keys:PINs,I,O,B
 my $out;
 open(OF,"> $file");
 open(IF,"$TmpF");
@@ -64,7 +64,16 @@ print OF "$out";
 close IF;
 close OF;
 system("rm -f $TmpF");
-print Dumper(\%cnt);
+
+##print number of pin
+print <<CNT;
+***********************
+* Pins = $cnt{PINs}
+*   I  = $cnt{I}
+*   O  = $cnt{O}
+*   B  = $cnt{B}
+***********************
+CNT
 exit;
 
 
