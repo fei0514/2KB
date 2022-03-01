@@ -2,10 +2,12 @@
 
 use strict;
 use Data::Dumper;
+use Term::ANSIColor;
 
 my $script = `basename $0`;
 chomp($script);
 
+&PrintLogo;
 my ($file,$subckt,$ins) = &Parser;
 #print Dumper($file,$subckt,$ins);
 
@@ -14,7 +16,7 @@ my $cmd_cp = qq(cp $file $TmpF);
 system($cmd_cp);
 #sleep 3;
 
-my ($replAns,$insAns,$cntAns) = &Ans($subckt,$ins);
+my ($replAns,$insAns,$cntAns,$cmtAns) = &Ans($subckt,$ins);
 my $SW = "N";
 my $SW_cnt = "N";
 my %cnt; ##keys:PINs,I,O,B
@@ -57,7 +59,11 @@ while(<IF>){
     next;
   }else{
     $SW_cnt = &CntPinInfo($_) if($SW_cnt eq "Y"); ##go to count number of pin and switch SW_cnt
-    print OF "$_\n";
+    if(($cmtAns eq "Y") && ($SW eq "Y") && ($SW_cnt eq "N")){
+      print OF "\*$_\n";
+    }else{
+      print OF "$_\n";
+    }
     next;
   }
 }
@@ -127,10 +133,9 @@ sub Parser{
 sub Ans{
   chomp(my ($subckt,$ins) = @_);
   
+  my $ans;
 ##Rename
   print "Do rename $subckt to ${subckt}_1 [Y/N]?";
-  my $ans;
-
   while($ans = <STDIN>){
     if($ans !~ /y|n/i){
       print "Only allow Y/N\n";
@@ -159,7 +164,23 @@ sub Ans{
   }
   chomp(my $cntans = uc($ans));
 
-  return($replans,$insans,$cntans); 
+##comment out
+  print "Do comment out all in $subckt [Y/N]?";
+  while($ans = <STDIN>){
+    if($ans !~ /y|n/i){
+      print "Only allow Y/N\n";
+      print "Do comment out all in $subckt [Y/N]?";
+    }else{last;}
+  }
+  chomp(my $cmtans = uc($ans));
+
+  if($cmtans eq "Y"){ #disable other function
+    $replans = "N";
+    $insans = "N";
+    $cntans = "N";
+  }
+
+  return($replans,$insans,$cntans,$cmtans); 
 }
 
 sub CntPinInfo{
@@ -212,9 +233,30 @@ sub CntPinInfo{
   return($rSW);
 }
 
+sub PrintLogo{
+  print color('magenta');
+  print <<LOGO;
+######################kb################################
+##                                                    ##
+##   #     #   ####            ############           ##
+##   #    #    #   #          #            #          ##
+##   #   #     #   #         #              #         ##
+##   #  #      #   #        #################         ##
+##   ###       ####         #               #         ##
+##   #  #      #   #        #         ###   #         ##
+##   #   #     #    #       #         # #   #         ##
+##   #    #    #    #       #         # #   #         ##
+##   #     #   #####        #################         ##
+##                                                    ##
+########################################################
+LOGO
+  print color('reset');
+}
+
 sub PrintHelp{
   print <<HELP;
   \t$script -f <file> -sub <subckt> -ins <insert text or file>
 HELP
   exit;
 }
+
