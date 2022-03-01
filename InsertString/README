@@ -1,0 +1,19 @@
+This perl is for the purpose of getting the sub-circuit information in Hspice format and quick edit.
+
+-f   <file> 
+-sub <subckt> 
+-ins <insert text or file>
+
+Function 
+1. Do rename "-sub" to "-sub"_1 ?
+This function will rename all the subckt name in the target file which is given by user.
+ 
+2. Do insert XXX in "-sub" ?
+This function will insert specific text or words in the file you prepare at the previous line of ".ENDS" of the target "-sub"
+
+3. Do count number of pin in "-sub" ?
+This function will count the pin number of the target subckt , and also get the pin information(:I , :O , :B) if it provides in the spice file
+And the result will save in "-sub"_pin , it will sort by name and by pin information one word per line
+
+4. Do comment out all in "-sub" ?
+This function will add a "*" at every line in the target "-sub" form the end of pin information to .ENDS
