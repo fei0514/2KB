@@ -28,8 +28,19 @@ while(<IF>){
   chomp;
 
   if($replAns eq "Y"){ ##replace subckt name
-    $_ =~ s/\s+${subckt}\W+|\n/ ${subckt}_1 /g;
+    my @reg = split(/\s+/,$_);
+    my $check = "N";
+    foreach my $i(@reg){
+      if($i =~ /^${subckt}$/){
+        $check = "Y";
+        last;
+      }
+    }
+    if($check eq "Y"){
+      $_ =~ s/${subckt}/${subckt}_1/g;
+    }
   }
+
   if($_ =~ /^\.SUBCKT\s+/){
     if($replAns eq "Y"){
       if($_ =~ /\s+${subckt}_1\s+/){
