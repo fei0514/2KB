@@ -28,7 +28,7 @@ while(<IF>){
   chomp;
 
   if($replAns eq "Y"){ ##replace subckt name
-    $_ =~ s/$subckt/${subckt}_1/g;
+    $_ =~ s/\s+${subckt}\W+|\n/ ${subckt}_1 /g;
   }
   if($_ =~ /^\.SUBCKT\s+/){
     if($replAns eq "Y"){
@@ -174,11 +174,11 @@ sub Ans{
   }
   chomp(my $cmtans = uc($ans));
 
-  if($cmtans eq "Y"){ #disable other function
-    $replans = "N";
-    $insans = "N";
-    $cntans = "N";
-  }
+  #if($cmtans eq "Y"){ #disable other function
+  #  $replans = "N";
+  #  $insans = "N";
+  #  $cntans = "N";
+  #}
 
   return($replans,$insans,$cntans,$cmtans); 
 }
