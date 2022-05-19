@@ -44,18 +44,34 @@ while(<IF>){
     my @reg2 = split(/\s+/,$part2);
     if($mode == 1){
       foreach my $i(@reg2){
-        my $fullLine = sprintf("%s %s %s",$part1,$i,$part3);
+        my $fullLine;
+        if(! $part1){
+          $fullLine = sprintf("%s %s",$i,$part3);
+        }else{
+          $fullLine = sprintf("%s %s %s",$part1,$i,$part3);
+        }
         print OF "$fullLine\n";
       }
     }elsif($mode == 2){
       my $line = 0;
+      my $sLen = length($part1);
       foreach my $i(@reg2){
         if($line < 1){
-          my $fullLine = sprintf("%s %s %s",$part1,$i,$part3);
+          my $fullLine;
+          if(! $part1){
+            $fullLine = sprintf("%s %s",$i,$part3);
+          }else{
+            $fullLine = sprintf("%s %s %s",$part1,$i,$part3);
+          }
           print OF "$fullLine\n";
           $line++;
         }else{
-          my $fullLine = sprintf("%s %s %s",$i);
+          my $fullLine;
+          if(! $part1){
+            $fullLine = sprintf("%s",$i);
+          }else{
+            $fullLine = sprintf("%s %s"," "x$sLen,$i);
+          }
           print OF "$fullLine\n";
         }
       }
